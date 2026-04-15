@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZoomClone — In Meeting</title>
+  <meta name="description" content="ZoomClone video conference room" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/room.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="room-header">
+    <div class="header-left">
+      <div class="logo-small">
+        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="url(#logoGrad2)"/>
+          <defs>
+            <linearGradient id="logoGrad2" x1="0" y1="0" x2="32" y2="32">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#888888"/>
+            </linearGradient>
+          </defs>
+          <path d="M8 12h12v8H8z" fill="black" opacity="0.9"/>
+          <path d="M20 14l4-2v8l-4-2v-4z" fill="black"/>
+        </svg>
+        <span>ZoomClone</span>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="room-id-display">
+        <span class="room-label">Meeting ID:</span>
+        <span class="room-id" id="displayRoomId">Loading...</span>
+        <button class="copy-btn" id="copyRoomBtn" title="Copy Meeting ID" onclick="copyRoomId()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        <span>LIVE</span>
+      </div>
+      <div class="participant-count" id="participantCount">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        <span id="peerCount">1</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main area -->
+  <div class="room-layout">
+    <!-- Video Grid -->
+    <div class="video-area" id="videoArea">
+      <div class="video-grid" id="videoGrid">
+        <!-- Local video tile -->
+        <div class="video-tile local-tile" id="localTile">
+          <video id="localVideo" autoplay muted playsinline></video>
+          <div class="tile-overlay">
+            <div class="participant-name" id="localName">You</div>
+            <div class="tile-status-icons">
+              <span class="status-icon" id="localMicIcon" title="Mic">🎤</span>
+              <span class="status-icon" id="localCamIcon" title="Camera">📹</span>
+            </div>
+          </div>
+          <div class="no-video-placeholder" id="localNoVideo" style="display:none;">
+            <div class="avatar-large" id="localAvatar">?</div>
+            <span id="localNamePlaceholder">You</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Sidebar -->
+    <div class="chat-sidebar" id="chatSidebar">
+      <div class="chat-header">
+        <h3>Meeting Chat</h3>
+        <button class="close-chat-btn" onclick="toggleChat()">✕</button>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-system-msg">Chat started. Say hello! 👋</div>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" id="chatInput" placeholder="Type a message..." maxlength="500" />
+        <button class="send-btn" id="sendMsgBtn" onclick="sendMessage()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Control Bar -->
+  <div class="control-bar">
+    <div class="controls-left">
+      <div class="control-info">
+        <span id="myNameDisplay">You</span>
+      </div>
+    </div>
+    <div class="controls-center">
+      <!-- Mute button -->
+      <button class="ctrl-btn" id="muteBtn" title="Toggle Microphone" onclick="toggleMic()">
+        <div class="ctrl-icon">
+          <svg id="micOnIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+          <svg id="micOffIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6M17 16.95A7 7 0 015 12v-2m14 0v2a7 7 0 01-.11 1.23M12 19v4M8 23h8"/></svg>
+        </div>
+        <span class="ctrl-label" id="muteLabel">Mute</span>
+      </button>
+
+      <!-- Video button -->
+      <button class="ctrl-btn" id="videoBtn" title="Toggle Camera" onclick="toggleVideo()">
+        <div class="ctrl-icon">
+          <svg id="camOnIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+          <svg id="camOffIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M16 16v1a2 2 0 01-2 2H3a2 2 0 01-2-2V7a2 2 0 012-2h2m5.66 0H14a2 2 0 012 2v3.34l1 1L23 7v10M1 1l22 22"/></svg>
+        </div>
+        <span class="ctrl-label" id="videoLabel">Stop Video</span>
+      </button>
+
+      <!-- Chat button -->
+      <button class="ctrl-btn" id="chatBtn" title="Toggle Chat" onclick="toggleChat()">
+        <div class="ctrl-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </div>
+        <span class="ctrl-label">Chat</span>
+        <span class="chat-badge" id="chatBadge" style="display:none;">0</span>
+      </button>
+
+      <!-- Share screen button -->
+      <button class="ctrl-btn" id="shareBtn" title="Share Screen" onclick="toggleScreenShare()">
+        <div class="ctrl-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <span class="ctrl-label">Share</span>
+      </button>
+
+      <!-- Leave button -->
+      <button class="ctrl-btn leave-btn" id="leaveBtn" title="Leave Meeting" onclick="leaveMeeting()">
+        <div class="ctrl-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </div>
+        <span class="ctrl-label">Leave</span>
+      </button>
+    </div>
+    <div class="controls-right">
+      <div class="timer-display" id="meetingTimer">00:00</div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="scripts/room.js"></script>
+</body>
+</html>
